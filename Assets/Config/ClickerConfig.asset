@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9d06d4ab79a488280e1e0836c50fa90, type: 3}
+  m_Name: ClickerConfig
+  m_EditorClassIdentifier: 
+  maxEnergy: 1000
+  regenAmount: 10
+  regenInterval: 10
+  costEnergy: 1
+  coinsPerClick: 1
+  autoGrindInterval: 3
+  coinFlyDuration: 0.15
+  buttonClickMoveAmount: 10
+  buttonClickDuration: 0.05
