@@ -4,26 +4,67 @@ using UnityEngine.Networking;
 using System;
 
 public class WeatherRequestService
-{
+{ 
     private const string WeatherApiUrl = "https://api.weather.gov/gridpoints/TOP/32,81/forecast";
 
-    public IEnumerator RequestWeather(Action<int, string> onSuccess)
+    private UnityWebRequest currentRequest;
+
+    public void CancelRequest()
     {
-        using UnityWebRequest request = UnityWebRequest.Get(WeatherApiUrl);
-        yield return request.SendWebRequest();
+        if (currentRequest == null) return;
 
-            string json = request.downloadHandler.text;
-            var degreeStr = "61";
-            var iconUrl = "https://example.com/weather.png"; // Аналогично
-
-            onSuccess?.Invoke(int.Parse(degreeStr), iconUrl);
+        if (currentRequest.isDone) return;
         
+        currentRequest.Abort();
+    }
+    
+    public IEnumerator RequestWeather(
+        Func<bool> isTabStillActive,
+        Action<int, string> onSuccess,
+        Action<string> onError = null)
+    {
+        if (!isTabStillActive()) yield break;
+
+        currentRequest = UnityWebRequest.Get(WeatherApiUrl);
+
+        yield return currentRequest.SendWebRequest();
+
+        if (!isTabStillActive()) yield break;
+        
+        if (currentRequest.result != UnityWebRequest.Result.Success)
+        {
+            onError?.Invoke(currentRequest.error);
+            yield break;
+        }
+
+        try
+        {
+            string json = currentRequest.downloadHandler.text;
+            var data = JsonUtility.FromJson<WeatherResponse>(json);
+
+            var firstPeriod = data.properties.periods[0];
+            int temp = firstPeriod.temperature;
+            string iconUrl = firstPeriod.icon;
+
+            onSuccess?.Invoke(temp, iconUrl);
+        }
+        catch (Exception e)
+        {
+            onError?.Invoke("Ошибка парсинга данных");
+        }
     }
 
     public IEnumerator LoadIcon(string url, Action<Sprite> onSuccess, Action<string> onError = null)
     {
         UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
         yield return request.SendWebRequest();
+
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            onError?.Invoke(request.error);
+
+            yield break;
+        }
 
         Texture2D texture = DownloadHandlerTexture.GetContent(request);
         Sprite sprite = Sprite.Create(texture,
@@ -33,4 +74,3 @@ public class WeatherRequestService
         onSuccess?.Invoke(sprite);
     }
 }
-
